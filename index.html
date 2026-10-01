@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111827">
+<title>SmallRoute v0.1</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box} html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111827;color:#fff}
+#app{height:100%;position:relative;overflow:hidden} #map{position:absolute;inset:0}
+.top{position:absolute;z-index:1000;top:max(12px,env(safe-area-inset-top));left:12px;right:12px}
+.search{background:#fff;color:#111;border-radius:16px;padding:10px;box-shadow:0 4px 18px #0004;display:flex;gap:8px}
+.search input{flex:1;border:0;outline:0;font-size:16px;min-width:0}.search button{border:0;border-radius:11px;background:#111827;color:#fff;padding:10px 12px;font-weight:700}
+.chips{display:flex;gap:7px;margin-top:9px;overflow:auto}.chip{white-space:nowrap;background:#fff;color:#111;border:0;border-radius:999px;padding:8px 11px;box-shadow:0 3px 12px #0003;font-weight:650}
+.bottom{position:absolute;z-index:1000;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));background:#fff;color:#111;border-radius:20px;box-shadow:0 5px 24px #0005;padding:12px}
+.status{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#555}.vehicle{font-weight:800;color:#111}
+.routebox{margin-top:7px;display:none}.turn{font-size:22px;font-weight:850}.sub{color:#666;margin-top:2px}.stats{display:flex;gap:18px;margin-top:10px;font-weight:750}
+.actions{display:flex;gap:8px;margin-top:11px}.primary{flex:1;background:#16a34a;color:#fff;border:0;border-radius:13px;padding:13px;font-size:16px;font-weight:800}.secondary{background:#eef2f7;border:0;border-radius:13px;padding:13px;font-weight:800}
+.panel{position:absolute;z-index:1100;left:10px;right:10px;top:90px;background:#fff;color:#111;border-radius:18px;box-shadow:0 5px 24px #0006;padding:15px;display:none}
+.panel h3{margin:0 0 12px}.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #eee}.row:last-child{border:0}.row select,.row input{padding:7px;border-radius:9px;border:1px solid #ccc}
+.report{position:absolute;z-index:1000;right:15px;bottom:170px;width:64px;height:64px;border-radius:50%;border:0;background:#f97316;color:#fff;font-size:11px;font-weight:900;box-shadow:0 5px 18px #0005}
+.toast{position:absolute;z-index:1200;left:50%;transform:translateX(-50%);bottom:155px;background:#111827;color:#fff;padding:10px 14px;border-radius:999px;display:none;font-size:13px}
+.leaflet-control-attribution{font-size:9px}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="map"></div>
+
+<div class="top">
+  <div class="search">
+    <input id="destination" placeholder="Where do you want to go?" autocomplete="off">
+    <button onclick="routeToDestination()">GO</button>
+  </div>
+  <div class="chips">
+    <button class="chip" onclick="setVehicle('50cc')">🛵 50cc</button>
+    <button class="chip" onclick="setVehicle('150cc')">🛵 150cc</button>
+    <button class="chip" onclick="setVehicle('moto')">🏍️ Motorcycle</button>
+    <button class="chip" onclick="setVehicle('moped')">🚲 Motorized Bike</button>
+  </div>
+</div>
+
+<button class="report" onclick="showReports()">REPORT</button>
+<div class="toast" id="toast"></div>
+
+<div class="panel" id="settings">
+<h3>⚙️ SmallRoute Settings</h3>
+<div class="row"><span>Vehicle</span><select id="vehicleSelect" onchange="setVehicle(this.value)">
+<option value="50cc">50cc Scooter</option><option value="150cc" selected>150cc Scooter</option><option value="moto">Motorcycle</option><option value="moped">Motorized Bicycle</option></select></div>
+<div class="row"><span>🚫 Avoid highways</span><input id="avoidHighways" type="checkbox" checked></div>
+<div class="row"><span>💰 Avoid tolls</span><input id="avoidTolls" type="checkbox" checked></div>
+<div class="row"><span>🚧 Avoid restricted roads</span><input id="avoidRestricted" type="checkbox" checked></div>
+<div class="actions"><button class="secondary" onclick="closeSettings()">Close</button></div>
+</div>
+
+<div class="bottom">
+ <div class="status"><span class="vehicle" id="vehicleLabel">🛵 150cc Scooter</span><span id="gpsStatus">Finding GPS…</span></div>
+ <div class="routebox" id="routebox">
+   <div class="turn" id="turnText">Route ready</div>
+   <div class="sub" id="routeSub">SmallRoute vehicle-aware routing</div>
+   <div class="stats"><span id="distance">—</span><span id="eta">—</span></div>
+ </div>
+ <div class="actions">
+   <button class="primary" id="startBtn" onclick="startNav()">START NAVIGATION</button>
+   <button class="secondary" onclick="openSettings()">⚙️</button>
+   <button class="secondary" onclick="centerOnMe()">◎</button>
+ </div>
+</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let map=L.map('map',{zoomControl:false}).setView([25.7617,-80.1918],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+L.control.zoom({position:'bottomright'}).addTo(map);
+
+let userMarker=null, accuracyCircle=null, routeLine=null, currentPos=null, watchId=null;
+let vehicle='150cc';
+const profiles={
+ '50cc':{label:'🛵 50cc Scooter',max:40},
+ '150cc':{label:'🛵 150cc Scooter',max:60},
+ 'moto':{label:'🏍️ Motorcycle',max:80},
+ 'moped':{label:'🚲 Motorized Bicycle',max:30}
+};
+
+function setVehicle(v){vehicle=v;document.getElementById('vehicleLabel').textContent=profiles[v].label;document.getElementById('vehicleSelect').value=v;toast(profiles[v].label+' selected');}
+function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>e.style.display='none',2200)}
+function openSettings(){document.getElementById('settings').style.display='block'}
+function closeSettings(){document.getElementById('settings').style.display='none'}
+function showReports(){toast('Report system coming next: crash • traffic • pothole • construction • flooding');}
+
+function onLocation(p){
+ currentPos=[p.coords.latitude,p.coords.longitude];
+ document.getElementById('gpsStatus').textContent='GPS active';
+ if(!userMarker) userMarker=L.circleMarker(currentPos,{radius:8,weight:3,fillOpacity:1}).addTo(map);
+ else userMarker.setLatLng(currentPos);
+ if(!accuracyCircle) accuracyCircle=L.circle(currentPos,{radius:p.coords.accuracy||30,weight:1,fillOpacity:.08}).addTo(map);
+ else accuracyCircle.setLatLng(currentPos).setRadius(p.coords.accuracy||30);
+}
+if(navigator.geolocation){
+ watchId=navigator.geolocation.watchPosition(onLocation,()=>document.getElementById('gpsStatus').textContent='GPS permission needed',{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+}else document.getElementById('gpsStatus').textContent='GPS unavailable';
+
+function centerOnMe(){
+ if(currentPos){map.setView(currentPos,15);return}
+ navigator.geolocation?.getCurrentPosition(onLocation,()=>toast('Allow location access in Safari settings'));
+}
+
+async function geocode(q){
+ let url='https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(q);
+ let r=await fetch(url,{headers:{'Accept-Language':'en'}});
+ let d=await r.json(); return d[0]? [Number(d[0].lat),Number(d[0].lon),d[0].display_name]:null;
+}
+async function routeToDestination(){
+ let q=document.getElementById('destination').value.trim();
+ if(!q){toast('Enter a destination');return}
+ if(!currentPos){toast('Waiting for your GPS location');centerOnMe();return}
+ toast('Finding destination…');
+ try{
+   let dest=await geocode(q); if(!dest){toast('Destination not found');return}
+   let avoidHigh=document.getElementById('avoidHighways').checked;
+   // OSRM demo router for prototype only. Vehicle-aware filtering is the next routing-engine step.
+   let profile=avoidHigh?'driving':'driving';
+   let url=`https://router.project-osrm.org/route/v1/${profile}/${currentPos[1]},${currentPos[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson&steps=true`;
+   let r=await fetch(url); let d=await r.json();
+   if(d.code!=='Ok') throw Error('route');
+   if(routeLine) map.removeLayer(routeLine);
+   routeLine=L.geoJSON(d.routes[0].geometry,{style:{weight:6,opacity:.85}}).addTo(map);
+   map.fitBounds(routeLine.getBounds(),{padding:[50,150]});
+   let miles=d.routes[0].distance/1609.344, mins=d.routes[0].duration/60;
+   document.getElementById('distance').textContent=miles.toFixed(1)+' mi';
+   document.getElementById('eta').textContent=Math.round(mins)+' min';
+   document.getElementById('turnText').textContent='Route ready';
+   document.getElementById('routeSub').textContent=dest[2].split(',').slice(0,2).join(',');
+   document.getElementById('routebox').style.display='block';
+   toast('Route found — vehicle rules will be added next');
+ }catch(e){toast('Routing service unavailable. Try again.')}
+}
+function startNav(){
+ if(!routeLine){toast('Choose a destination first');return}
+ document.getElementById('startBtn').textContent='NAVIGATING';
+ toast('Navigation started');
+}
+</script>
+</body>
+</html>
