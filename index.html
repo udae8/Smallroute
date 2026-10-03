@@ -1,49 +1,1594 @@
-<!doctype html><html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#111827">
-<title>SmallRoute v0.2</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+
+<meta name="theme-color" content="#111827">
+
+<title>SmallRoute v0.3</title>
+
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <style>
-*{box-sizing:border-box}html,body,#app{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}#app{position:relative;overflow:hidden;background:#111827}#map{position:absolute;inset:0}
-.top{position:absolute;z-index:10;top:max(12px,env(safe-area-inset-top));left:12px;right:12px}.search{background:white;border-radius:16px;padding:10px;display:flex;gap:8px;box-shadow:0 4px 18px #0004}.search input{flex:1;border:0;outline:0;font-size:16px}.search button,.primary{border:0;border-radius:11px;background:#111827;color:white;padding:10px 13px;font-weight:800}
-.chips{display:flex;gap:7px;margin-top:9px;overflow:auto}.chip{white-space:nowrap;border:0;border-radius:999px;background:white;color:#111;padding:8px 11px;font-weight:700;box-shadow:0 3px 12px #0003}.chip.active{background:#111827;color:white}
-.bottom{position:absolute;z-index:10;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));background:white;color:#111;border-radius:20px;padding:12px;box-shadow:0 5px 24px #0005}.status{display:flex;justify-content:space-between;color:#666;font-size:13px}.vehicle{font-weight:850;color:#111}.routebox{display:none;margin-top:7px}.turn{font-size:21px;font-weight:850}.sub{color:#666;font-size:13px}.stats{display:flex;gap:18px;margin-top:9px;font-weight:800}.actions{display:flex;gap:8px;margin-top:10px}.primary{flex:1;background:#16a34a;font-size:16px}.secondary{border:0;border-radius:12px;background:#eef2f7;padding:12px;font-weight:800}
-.panel{position:absolute;z-index:20;left:10px;right:10px;top:max(78px,calc(env(safe-area-inset-top) + 66px));max-height:calc(100vh - 170px);overflow:auto;background:white;color:#111;border-radius:20px;padding:16px;box-shadow:0 5px 24px #0006;display:none}.panel h2{margin:0}.intro{color:#666;font-size:13px;margin:4px 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.vcard{border:2px solid #e5e7eb;border-radius:15px;padding:11px;background:white;text-align:left}.vcard.active{border-color:#111827;background:#f3f4f6}.vcard b{display:block}.vcard span{display:block;color:#666;font-size:12px;margin-top:3px}.section{margin-top:15px;font-size:12px;font-weight:850;color:#666;text-transform:uppercase}.setting{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee}.setting strong{display:block}.setting small{display:block;color:#777;font-size:12px;margin-top:2px}input[type=checkbox]{width:23px;height:23px;accent-color:#111827}.close{width:100%;border:0;border-radius:13px;background:#111827;color:white;padding:13px;margin-top:14px;font-weight:850}.report{position:absolute;z-index:10;right:15px;bottom:174px;width:64px;height:64px;border:0;border-radius:50%;background:#f97316;color:white;font-weight:900;box-shadow:0 5px 18px #0005}.toast{position:absolute;z-index:30;left:50%;transform:translateX(-50%);bottom:158px;background:#111827;color:white;padding:10px 14px;border-radius:999px;display:none;font-size:13px;white-space:nowrap}
-</style></head><body><div id="app"><div id="map"></div>
-<div class="top"><div class="search"><input id="destination" placeholder="Where do you want to go?"><button onclick="routeToDestination()">GO</button></div>
-<div class="chips"><button class="chip" id="c50" onclick="setVehicle('50cc')">🛵 50cc</button><button class="chip" id="c150" onclick="setVehicle('150cc')">🛵 150cc</button><button class="chip" id="cmoto" onclick="setVehicle('moto')">🏍️ Motorcycle</button><button class="chip" id="cmoped" onclick="setVehicle('moped')">🚲 Motorized Bike</button></div></div>
-<button class="report" onclick="toast('Next: crash • traffic • pothole • construction • flooding')">REPORT</button><div class="toast" id="toast"></div>
-<div class="panel" id="settings"><h2>⚙️ SmallRoute Settings</h2><div class="intro">Your vehicle profile controls how SmallRoute will route you.</div>
-<div class="section">Vehicle</div><div class="grid">
-<button class="vcard" id="v50" onclick="setVehicle('50cc')"><b>🛵 50cc Scooter</b><span>Slow-speed profile</span></button>
-<button class="vcard" id="v150" onclick="setVehicle('150cc')"><b>🛵 150cc Scooter</b><span>Small motorcycle profile</span></button>
-<button class="vcard" id="vmoto" onclick="setVehicle('moto')"><b>🏍️ Motorcycle</b><span>Higher-speed profile</span></button>
-<button class="vcard" id="vmoped" onclick="setVehicle('moped')"><b>🚲 Motorized Bicycle</b><span>Low-speed profile</span></button></div>
-<div class="section">Route rules</div>
-<div class="setting"><div><strong>🚫 Avoid highways</strong><small>Prefer non-interstate roads</small></div><input id="highways" type="checkbox" checked></div>
-<div class="setting"><div><strong>💰 Avoid tolls</strong><small>Do not intentionally use toll roads</small></div><input id="tolls" type="checkbox" checked></div>
-<div class="setting"><div><strong>🚧 Avoid restricted roads</strong><small>Honor mapped access restrictions</small></div><input id="restricted" type="checkbox" checked></div>
-<div class="setting"><div><strong>🛣️ Prefer lower-speed roads</strong><small>Better suited to slower vehicles</small></div><input id="low" type="checkbox" checked></div>
-<div class="setting"><div><strong>🛤️ Avoid unpaved roads</strong><small>Prefer paved roads</small></div><input id="unpaved" type="checkbox" checked></div>
-<div id="summary" style="margin-top:14px;background:#f3f4f6;border-radius:14px;padding:12px;font-size:13px;line-height:1.55"></div>
-<button class="close" onclick="closeSettings()">Done</button></div>
-<div class="bottom"><div class="status"><span class="vehicle" id="label"></span><span id="gps">Finding GPS…</span></div>
-<div class="routebox" id="routebox"><div class="turn">Route ready</div><div class="sub" id="sub"></div><div class="stats"><span id="distance">—</span><span id="eta">—</span></div></div>
-<div class="actions"><button class="primary" id="start" onclick="startNav()">START NAVIGATION</button><button class="secondary" onclick="openSettings()">⚙️</button><button class="secondary" onclick="center()">◎</button></div></div></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
-const P={ '50cc':{label:'🛵 50cc Scooter',max:40},'150cc':{label:'🛵 150cc Scooter',max:60},moto:{label:'🏍️ Motorcycle',max:80},moped:{label:'🚲 Motorized Bicycle',max:30}};
-let vehicle=localStorage.getItem('sr_vehicle')||'150cc',pos=null,marker=null,circle=null,line=null;
-const map=L.map('map').setView([25.7617,-80.1918],11);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);L.control.zoom({position:'bottomright'}).addTo(map);
-function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>e.style.display='none',2300)}
-function setVehicle(v){vehicle=v;localStorage.setItem('sr_vehicle',v);document.getElementById('label').textContent=P[v].label;['50','150','moto','moped'].forEach(x=>{let e=document.getElementById('c'+x);if(e)e.classList.remove('active')});document.getElementById('c'+(v==='50cc'?'50':v==='150cc'?'150':v)).classList.add('active');['v50','v150','vmoto','vmoped'].forEach(x=>document.getElementById(x).classList.remove('active'));document.getElementById(v==='50cc'?'v50':v==='150cc'?'v150':v==='moto'?'vmoto':'vmoped').classList.add('active');summary();toast(P[v].label+' selected')}
-function summary(){let y=id=>document.getElementById(id).checked?'ON':'OFF';document.getElementById('summary').innerHTML='<b>'+P[vehicle].label+'</b> • preferred max '+P[vehicle].max+' mph<br>Avoid highways: <b>'+y('highways')+'</b><br>Avoid tolls: <b>'+y('tolls')+'</b><br>Avoid restricted roads: <b>'+y('restricted')+'</b><br>Prefer lower-speed roads: <b>'+y('low')+'</b><br>Avoid unpaved: <b>'+y('unpaved')+'</b>'}
-document.querySelectorAll('.setting input').forEach(e=>e.onchange=summary);
-function openSettings(){document.getElementById('settings').style.display='block';summary()}function closeSettings(){document.getElementById('settings').style.display='none'}
-function onloc(x){pos=[x.coords.latitude,x.coords.longitude];document.getElementById('gps').textContent='GPS active';if(!marker)marker=L.circleMarker(pos,{radius:8,weight:3,fillOpacity:1}).addTo(map);else marker.setLatLng(pos);if(!circle)circle=L.circle(pos,{radius:x.coords.accuracy||30,weight:1,fillOpacity:.08}).addTo(map);else circle.setLatLng(pos).setRadius(x.coords.accuracy||30)}
-navigator.geolocation?.watchPosition(onloc,()=>document.getElementById('gps').textContent='GPS permission needed',{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
-function center(){if(pos)map.setView(pos,15);else navigator.geolocation?.getCurrentPosition(onloc,()=>toast('Allow location access'))}
-async function geocode(q){let r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(q));let d=await r.json();return d[0]?[+d[0].lat,+d[0].lon,d[0].display_name]:null}
-async function routeToDestination(){let q=document.getElementById('destination').value.trim();if(!q)return toast('Enter a destination');if(!pos)return toast('Waiting for GPS');toast('Finding destination…');try{let d=await geocode(q);if(!d)throw 0;let r=await fetch(`https://router.project-osrm.org/route/v1/driving/${pos[1]},${pos[0]};${d[1]},${d[0]}?overview=full&geometries=geojson`);let j=await r.json();if(j.code!=='Ok')throw 0;if(line)map.removeLayer(line);line=L.geoJSON(j.routes[0].geometry,{style:{weight:6,opacity:.85}}).addTo(map);map.fitBounds(line.getBounds(),{padding:[50,160]});document.getElementById('distance').textContent=(j.routes[0].distance/1609.344).toFixed(1)+' mi';document.getElementById('eta').textContent=Math.round(j.routes[0].duration/60)+' min';document.getElementById('sub').textContent=P[vehicle].label+' • selected rules saved';document.getElementById('routebox').style.display='block';toast('Prototype route found')}catch(e){toast('Routing service unavailable — try again')}}
-function startNav(){if(!line)return toast('Choose a destination first');document.getElementById('start').textContent='NAVIGATING';toast('Navigation started')}
-setVehicle(vehicle);
-</script></body></html>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#map {
+  height: 100%;
+  margin: 0;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+body {
+  background: #111827;
+  color: #111827;
+}
+
+#map {
+  position: fixed;
+  inset: 0;
+}
+
+/* TOP PANEL */
+
+.panel {
+  position: fixed;
+  z-index: 1000;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+
+  background: #ffffff;
+  border-radius: 18px;
+
+  box-shadow: 0 5px 25px #0003;
+
+  padding: 10px;
+}
+
+/* SEARCH */
+
+.search {
+  display: flex;
+  gap: 8px;
+}
+
+.search input {
+  flex: 1;
+
+  border: 0;
+  background: #f1f5f9;
+
+  border-radius: 12px;
+
+  padding: 13px;
+
+  font-size: 16px;
+
+  outline: none;
+}
+
+.search button,
+.primary {
+  border: 0;
+
+  border-radius: 12px;
+
+  padding: 0 14px;
+
+  font-weight: 700;
+
+  background: #111827;
+  color: #ffffff;
+}
+
+/* VEHICLE BUTTONS */
+
+.chips {
+  display: flex;
+  gap: 7px;
+
+  overflow-x: auto;
+
+  padding: 9px 0 2px;
+}
+
+.chip {
+  white-space: nowrap;
+
+  border: 1px solid #d1d5db;
+
+  background: #ffffff;
+
+  border-radius: 999px;
+
+  padding: 8px 11px;
+
+  font-weight: 650;
+}
+
+.chip.active {
+  background: #111827;
+  color: #ffffff;
+
+  border-color: #111827;
+}
+
+/* SETTINGS */
+
+.settings {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 7px;
+
+  margin-top: 9px;
+}
+
+.setting {
+  background: #f8fafc;
+
+  border-radius: 11px;
+
+  padding: 8px;
+
+  font-size: 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.setting input {
+  accent-color: #111827;
+}
+
+/* STATUS */
+
+.status {
+  margin-top: 8px;
+
+  font-size: 12px;
+
+  color: #475569;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.status b {
+  color: #111827;
+}
+
+/* BOTTOM NAVIGATION CARD */
+
+.bottom {
+  position: fixed;
+
+  z-index: 1000;
+
+  left: 12px;
+  right: 12px;
+
+  bottom: 12px;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  box-shadow: 0 5px 25px #0003;
+
+  padding: 12px;
+}
+
+.routeLine {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.routeTitle {
+  font-size: 15px;
+
+  font-weight: 800;
+}
+
+.routeMeta {
+  font-size: 12px;
+
+  color: #64748b;
+
+  margin-top: 3px;
+}
+
+.primary {
+  padding: 12px 16px;
+}
+
+/* ACTION BUTTONS */
+
+.actions {
+  display: flex;
+
+  gap: 8px;
+
+  margin-top: 9px;
+}
+
+.actions button {
+  flex: 1;
+
+  border: 0;
+
+  border-radius: 11px;
+
+  padding: 10px;
+
+  font-weight: 750;
+}
+
+.report {
+  background: #fee2e2;
+
+  color: #991b1b;
+}
+
+.locate {
+  background: #e2e8f0;
+}
+
+/* NOTICE */
+
+.notice {
+  font-size: 11px;
+
+  color: #64748b;
+
+  margin-top: 8px;
+
+  line-height: 1.35;
+}
+
+/* TOAST */
+
+#toast {
+  position: fixed;
+
+  z-index: 2000;
+
+  left: 50%;
+
+  bottom: 150px;
+
+  transform: translateX(-50%);
+
+  background: #111827;
+
+  color: #ffffff;
+
+  padding: 10px 14px;
+
+  border-radius: 999px;
+
+  font-size: 13px;
+
+  display: none;
+
+  max-width: 90%;
+
+  text-align: center;
+}
+
+.leaflet-control-attribution {
+  font-size: 9px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+
+<!-- TOP PANEL -->
+
+<div class="panel">
+
+  <div class="search">
+
+    <input
+      id="dest"
+      placeholder="Where to?"
+      autocomplete="off">
+
+    <button id="searchBtn">
+      Go
+    </button>
+
+  </div>
+
+
+  <!-- VEHICLE SELECTION -->
+
+  <div class="chips">
+
+    <button
+      class="chip active"
+      data-v="50">
+      50cc
+    </button>
+
+    <button
+      class="chip"
+      data-v="150">
+      150cc
+    </button>
+
+    <button
+      class="chip"
+      data-v="moto">
+      Motorcycle
+    </button>
+
+    <button
+      class="chip"
+      data-v="bicycle">
+      Motorized bicycle
+    </button>
+
+  </div>
+
+
+  <!-- ROUTING OPTIONS -->
+
+  <div class="settings">
+
+    <label class="setting">
+      <input
+        id="highways"
+        type="checkbox"
+        checked>
+      Avoid highways
+    </label>
+
+    <label class="setting">
+      <input
+        id="tolls"
+        type="checkbox"
+        checked>
+      Avoid tolls
+    </label>
+
+    <label class="setting">
+      <input
+        id="restricted"
+        type="checkbox"
+        checked>
+      Avoid restricted
+    </label>
+
+    <label class="setting">
+      <input
+        id="lowSpeed"
+        type="checkbox"
+        checked>
+      Prefer lower-speed roads
+    </label>
+
+    <label class="setting">
+      <input
+        id="unpaved"
+        type="checkbox"
+        checked>
+      Avoid unpaved
+    </label>
+
+    <label class="setting">
+      <input
+        id="live"
+        type="checkbox"
+        checked>
+      Live GPS
+    </label>
+
+  </div>
+
+
+  <div class="status">
+
+    <span>
+      Vehicle:
+      <b id="vehicleName">
+        50cc Scooter
+      </b>
+    </span>
+
+    <span id="gps">
+      GPS waiting…
+    </span>
+
+  </div>
+
+</div>
+
+
+<!-- BOTTOM CARD -->
+
+<div class="bottom">
+
+  <div class="routeLine">
+
+    <div>
+
+      <div
+        class="routeTitle"
+        id="routeTitle">
+        Choose a destination
+      </div>
+
+      <div
+        class="routeMeta"
+        id="routeMeta">
+        SmallRoute vehicle-aware routing
+      </div>
+
+    </div>
+
+
+    <button
+      class="primary"
+      id="navBtn">
+      Navigate
+    </button>
+
+  </div>
+
+
+  <div class="actions">
+
+    <button
+      class="report"
+      id="reportBtn">
+      ⚠ Report
+    </button>
+
+    <button
+      class="locate"
+      id="locateBtn">
+      ◎ My location
+    </button>
+
+  </div>
+
+
+  <div class="notice">
+
+    v0.3 uses vehicle-specific routing profiles.
+    Road suitability is a routing aid, not a legal determination.
+
+  </div>
+
+</div>
+
+
+<div id="toast"></div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+<script>
+
+/* =========================================================
+   MAP
+========================================================= */
+
+const map = L.map("map", {
+  zoomControl: false
+}).setView(
+  [25.94, -80.21],
+  12
+);
+
+
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 19,
+    attribution: "© OpenStreetMap contributors"
+  }
+).addTo(map);
+
+
+L.control.zoom({
+  position: "bottomright"
+}).addTo(map);
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let userMarker = null;
+
+let destinationMarker = null;
+
+let routeLayer = null;
+
+let userPos = null;
+
+let destination = null;
+
+let watchId = null;
+
+
+/* =========================================================
+   VEHICLE PROFILES
+========================================================= */
+
+const profiles = {
+
+  "50": {
+
+    name: "50cc Scooter",
+
+    costing: "motor_scooter",
+
+    topSpeed: 50
+
+  },
+
+  "150": {
+
+    name: "150cc Scooter",
+
+    costing: "motor_scooter",
+
+    topSpeed: 85
+
+  },
+
+  "moto": {
+
+    name: "Motorcycle",
+
+    costing: "motorcycle",
+
+    topSpeed: 120
+
+  },
+
+  "bicycle": {
+
+    name: "Motorized bicycle",
+
+    costing: "bicycle",
+
+    topSpeed: 35
+
+  }
+
+};
+
+
+let selected =
+  localStorage.getItem(
+    "smallrouteVehicle"
+  ) || "50";
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function toast(message) {
+
+  const t =
+    document.getElementById("toast");
+
+  t.textContent = message;
+
+  t.style.display = "block";
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer =
+    setTimeout(() => {
+
+      t.style.display = "none";
+
+    }, 2600);
+}
+
+
+/* =========================================================
+   CURRENT PROFILE
+========================================================= */
+
+function profile() {
+
+  return profiles[selected];
+
+}
+
+
+/* =========================================================
+   VEHICLE SELECTION
+========================================================= */
+
+function setVehicle(vehicle) {
+
+  selected = vehicle;
+
+
+  document
+    .querySelectorAll(".chip")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.v === vehicle
+      );
+
+    });
+
+
+  document.getElementById(
+    "vehicleName"
+  ).textContent =
+    profile().name;
+
+
+  localStorage.setItem(
+    "smallrouteVehicle",
+    vehicle
+  );
+
+
+  if (
+    destination &&
+    userPos
+  ) {
+
+    route();
+
+  }
+
+}
+
+
+document
+  .querySelectorAll(".chip")
+  .forEach(button => {
+
+    button.onclick = () => {
+
+      setVehicle(
+        button.dataset.v
+      );
+
+    };
+
+  });
+
+
+setVehicle(selected);
+
+
+/* =========================================================
+   GPS
+========================================================= */
+
+function locate() {
+
+  if (!navigator.geolocation) {
+
+    toast(
+      "GPS is not available"
+    );
+
+    return;
+
+  }
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    position => {
+
+      userPos = {
+
+        lat:
+          position.coords.latitude,
+
+        lon:
+          position.coords.longitude,
+
+        accuracy:
+          position.coords.accuracy
+
+      };
+
+
+      if (!userMarker) {
+
+        userMarker =
+          L.marker([
+            userPos.lat,
+            userPos.lon
+          ])
+          .addTo(map)
+          .bindPopup(
+            "You are here"
+          );
+
+      } else {
+
+        userMarker.setLatLng([
+          userPos.lat,
+          userPos.lon
+        ]);
+
+      }
+
+
+      map.setView(
+        [
+          userPos.lat,
+          userPos.lon
+        ],
+        14
+      );
+
+
+      document.getElementById(
+        "gps"
+      ).textContent =
+        `GPS ±${Math.round(
+          userPos.accuracy
+        )}m`;
+
+
+      if (destination) {
+
+        route();
+
+      }
+
+    },
+
+    error => {
+
+      toast(
+        "GPS error: " +
+        error.message
+      );
+
+    },
+
+    {
+      enableHighAccuracy: true,
+
+      maximumAge: 10000,
+
+      timeout: 15000
+
+    }
+
+  );
+
+}
+
+
+/* =========================================================
+   LIVE GPS
+========================================================= */
+
+function startWatch() {
+
+  if (
+    watchId !== null
+  ) {
+
+    navigator.geolocation
+      .clearWatch(
+        watchId
+      );
+
+  }
+
+
+  if (
+    !document.getElementById(
+      "live"
+    ).checked
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !navigator.geolocation
+  ) {
+
+    return;
+
+  }
+
+
+  watchId =
+    navigator.geolocation.watchPosition(
+
+      position => {
+
+        userPos = {
+
+          lat:
+            position.coords.latitude,
+
+          lon:
+            position.coords.longitude,
+
+          accuracy:
+            position.coords.accuracy
+
+        };
+
+
+        if (!userMarker) {
+
+          userMarker =
+            L.marker([
+              userPos.lat,
+              userPos.lon
+            ])
+            .addTo(map);
+
+        } else {
+
+          userMarker.setLatLng([
+            userPos.lat,
+            userPos.lon
+          ]);
+
+        }
+
+
+        document.getElementById(
+          "gps"
+        ).textContent =
+          `GPS ±${Math.round(
+            userPos.accuracy
+          )}m`;
+
+      },
+
+      () => {},
+
+      {
+
+        enableHighAccuracy: true,
+
+        maximumAge: 5000,
+
+        timeout: 10000
+
+      }
+
+    );
+
+}
+
+
+document.getElementById(
+  "live"
+).onchange = startWatch;
+
+
+/* =========================================================
+   DESTINATION SEARCH
+========================================================= */
+
+async function geocode(query) {
+
+  const url =
+    "https://nominatim.openstreetmap.org/search" +
+    "?format=jsonv2" +
+    "&limit=1" +
+    "&countrycodes=us" +
+    "&q=" +
+    encodeURIComponent(query);
+
+
+  const response =
+    await fetch(url);
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "Search failed"
+    );
+
+  }
+
+
+  const results =
+    await response.json();
+
+
+  if (!results.length) {
+
+    throw new Error(
+      "Destination not found"
+    );
+
+  }
+
+
+  return {
+
+    lat:
+      Number(results[0].lat),
+
+    lon:
+      Number(results[0].lon),
+
+    name:
+      results[0].display_name
+
+  };
+
+}
+
+
+/* =========================================================
+   VALHALLA POLYLINE DECODER
+========================================================= */
+
+function decode6(encoded) {
+
+  let index = 0;
+
+  let latitude = 0;
+
+  let longitude = 0;
+
+  const coordinates = [];
+
+
+  while (
+    index < encoded.length
+  ) {
+
+    let result = 0;
+
+    let shift = 0;
+
+    let byte;
+
+
+    do {
+
+      byte =
+        encoded.charCodeAt(
+          index++
+        ) - 63;
+
+      result |=
+        (byte & 31) << shift;
+
+      shift += 5;
+
+    } while (
+      byte >= 32
+    );
+
+
+    const deltaLatitude =
+      (result & 1)
+        ? ~(result >> 1)
+        : (result >> 1);
+
+
+    latitude +=
+      deltaLatitude;
+
+
+    result = 0;
+
+    shift = 0;
+
+
+    do {
+
+      byte =
+        encoded.charCodeAt(
+          index++
+        ) - 63;
+
+      result |=
+        (byte & 31) << shift;
+
+      shift += 5;
+
+    } while (
+      byte >= 32
+    );
+
+
+    const deltaLongitude =
+      (result & 1)
+        ? ~(result >> 1)
+        : (result >> 1);
+
+
+    longitude +=
+      deltaLongitude;
+
+
+    coordinates.push([
+
+      latitude / 1e6,
+
+      longitude / 1e6
+
+    ]);
+
+  }
+
+
+  return coordinates;
+
+}
+
+
+/* =========================================================
+   VEHICLE-AWARE ROUTING
+========================================================= */
+
+async function route() {
+
+  if (!userPos) {
+
+    locate();
+
+    toast(
+      "Getting your GPS position…"
+    );
+
+    return;
+
+  }
+
+
+  if (!destination) {
+
+    return;
+
+  }
+
+
+  const p = profile();
+
+
+  const payload = {
+
+    locations: [
+
+      {
+
+        lat:
+          userPos.lat,
+
+        lon:
+          userPos.lon
+
+      },
+
+      {
+
+        lat:
+          destination.lat,
+
+        lon:
+          destination.lon
+
+      }
+
+    ],
+
+    costing:
+      p.costing,
+
+    units:
+      "miles",
+
+    costing_options: {}
+
+  };
+
+
+  /* -----------------------------------------
+     50cc / 150cc SCOOTER
+  ----------------------------------------- */
+
+  if (
+    p.costing ===
+    "motor_scooter"
+  ) {
+
+    payload
+      .costing_options
+      .motor_scooter = {
+
+        top_speed:
+          p.topSpeed,
+
+        use_highways:
+          document.getElementById(
+            "highways"
+          ).checked
+            ? 0
+            : 1,
+
+        use_tolls:
+          document.getElementById(
+            "tolls"
+          ).checked
+            ? 0
+            : 1,
+
+        use_primary:
+          document.getElementById(
+            "lowSpeed"
+          ).checked
+            ? 0.35
+            : 1
+
+      };
+
+  }
+
+
+  /* -----------------------------------------
+     MOTORCYCLE
+  ----------------------------------------- */
+
+  if (
+    p.costing ===
+    "motorcycle"
+  ) {
+
+    payload
+      .costing_options
+      .motorcycle = {
+
+        use_highways:
+          document.getElementById(
+            "highways"
+          ).checked
+            ? 0
+            : 1,
+
+        use_tolls:
+          document.getElementById(
+            "tolls"
+          ).checked
+            ? 0
+            : 1
+
+      };
+
+  }
+
+
+  /* -----------------------------------------
+     MOTORIZED BICYCLE
+  ----------------------------------------- */
+
+  if (
+    p.costing ===
+    "bicycle"
+  ) {
+
+    payload
+      .costing_options
+      .bicycle = {
+
+        bicycle_type:
+          "road",
+
+        use_roads:
+          0.75
+
+      };
+
+  }
+
+
+  document.getElementById(
+    "routeTitle"
+  ).textContent =
+    "Calculating vehicle-aware route…";
+
+
+  try {
+
+    const url =
+      "https://valhalla.openstreetmap.de/route?json=" +
+      encodeURIComponent(
+        JSON.stringify(payload)
+      );
+
+
+    const response =
+      await fetch(url);
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Routing service returned " +
+        response.status
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !data.trip ||
+      !data.trip.legs ||
+      !data.trip.legs.length
+    ) {
+
+      throw new Error(
+        "No route found"
+      );
+
+    }
+
+
+    const leg =
+      data.trip.legs[0];
+
+
+    const points =
+      decode6(
+        leg.shape
+      );
+
+
+    if (routeLayer) {
+
+      map.removeLayer(
+        routeLayer
+      );
+
+    }
+
+
+    routeLayer =
+      L.polyline(
+        points,
+        {
+
+          weight: 6,
+
+          opacity: 0.9
+
+        }
+      ).addTo(map);
+
+
+    map.fitBounds(
+      routeLayer.getBounds(),
+      {
+
+        padding: [
+          40,
+          250
+        ]
+
+      }
+    );
+
+
+    const summary =
+      data.trip.summary || {};
+
+
+    const miles =
+      (
+        summary.length || 0
+      ).toFixed(1);
+
+
+    const minutes =
+      Math.round(
+        (
+          summary.time || 0
+        ) / 60
+      );
+
+
+    document.getElementById(
+      "routeTitle"
+    ).textContent =
+      `${miles} mi • ${minutes} min`;
+
+
+    document.getElementById(
+      "routeMeta"
+    ).textContent =
+      `${p.name} • highways ${
+        document.getElementById(
+          "highways"
+        ).checked
+          ? "avoided"
+          : "allowed"
+      } • tolls ${
+        document.getElementById(
+          "tolls"
+        ).checked
+          ? "avoided"
+          : "allowed"
+      }`;
+
+  }
+
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    document.getElementById(
+      "routeTitle"
+    ).textContent =
+      "Route unavailable";
+
+
+    document.getElementById(
+      "routeMeta"
+    ).textContent =
+      error.message;
+
+
+    toast(
+      "Routing service unavailable. Try again."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SEARCH BUTTON
+========================================================= */
+
+document.getElementById(
+  "searchBtn"
+).onclick =
+  async function () {
+
+    const query =
+      document.getElementById(
+        "dest"
+      ).value.trim();
+
+
+    if (!query) {
+
+      return;
+
+    }
+
+
+    try {
+
+      document.getElementById(
+        "routeTitle"
+      ).textContent =
+        "Finding destination…";
+
+
+      destination =
+        await geocode(
+          query
+        );
+
+
+      if (
+        destinationMarker
+      ) {
+
+        map.removeLayer(
+          destinationMarker
+        );
+
+      }
+
+
+      destinationMarker =
+        L.marker([
+
+          destination.lat,
+
+          destination.lon
+
+        ])
+        .addTo(map)
+        .bindPopup(
+          destination.name
+        )
+        .openPopup();
+
+
+      await route();
+
+    }
+
+    catch (error) {
+
+      toast(
+        error.message
+      );
+
+    }
+
+  };
+
+
+/* =========================================================
+   ENTER KEY
+========================================================= */
+
+document.getElementById(
+  "dest"
+).addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Enter"
+    ) {
+
+      document.getElementById(
+        "searchBtn"
+      ).click();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   LOCATION BUTTON
+========================================================= */
+
+document.getElementById(
+  "locateBtn"
+).onclick =
+  locate;
+
+
+/* =========================================================
+   NAVIGATION BUTTON
+========================================================= */
+
+document.getElementById(
+  "navBtn"
+).onclick =
+  function () {
+
+    if (!destination) {
+
+      toast(
+        "Search for a destination first"
+      );
+
+      return;
+
+    }
+
+
+    startWatch();
+
+
+    toast(
+      "Navigation mode started"
+    );
+
+  };
+
+
+/* =========================================================
+   REPORT BUTTON
+========================================================= */
+
+document.getElementById(
+  "reportBtn"
+).onclick =
+  function () {
+
+    toast(
+      "Reports are the next module."
+    );
+
+  };
+
+
+/* =========================================================
+   ROUTING SETTINGS
+========================================================= */
+
+[
+  "highways",
+  "tolls",
+  "restricted",
+  "lowSpeed",
+  "unpaved"
+
+].forEach(id => {
+
+  document.getElementById(
+    id
+  ).onchange =
+    function () {
+
+      if (
+        destination
+      ) {
+
+        route();
+
+      }
+
+    };
+
+});
+
+
+/* =========================================================
+   START
+========================================================= */
+
+locate();
+
+startWatch();
+
+</script>
+
+</body>
+</html>
