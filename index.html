@@ -4,423 +4,637 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<meta name="theme-color" content="#111827">
+<title>SmallRoute v0.5</title>
 
-<title>SmallRoute v0.4</title>
+<link
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  rel="stylesheet"
+
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+
+/>
 
 <style>
 
-*{box-sizing:border-box}
+* {
 
-html,body,#map{
-
-  height:100%;
-
-  margin:0;
-
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  box-sizing: border-box;
 
 }
 
-body{
+html,
 
-  background:#111827;
+body {
 
-  overflow:hidden;
+  margin: 0;
 
-}
+  padding: 0;
 
-#map{
+  width: 100%;
 
-  position:fixed;
+  height: 100%;
 
-  inset:0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-}
+  background: #111;
 
-.panel{
-
-  position:fixed;
-
-  z-index:1000;
-
-  left:12px;
-
-  right:12px;
-
-  top:12px;
-
-  background:white;
-
-  border-radius:18px;
-
-  box-shadow:0 5px 25px #0003;
-
-  padding:10px;
+  color: #fff;
 
 }
 
-.search{
+#app {
 
-  display:flex;
+  width: 100%;
 
-  gap:8px;
+  height: 100%;
 
-}
+  position: relative;
 
-.search input{
-
-  flex:1;
-
-  border:0;
-
-  background:#f1f5f9;
-
-  border-radius:12px;
-
-  padding:13px;
-
-  font-size:16px;
-
-  outline:none;
+  overflow: hidden;
 
 }
 
-.search button{
+#map {
 
-  border:0;
+  position: absolute;
 
-  border-radius:12px;
+  inset: 0;
 
-  padding:0 15px;
-
-  font-weight:700;
-
-  background:#111827;
-
-  color:white;
+  z-index: 1;
 
 }
 
-.results{
+.topbar {
 
-  display:none;
+  position: absolute;
 
-  margin-top:8px;
+  top: env(safe-area-inset-top, 10px);
 
-  max-height:240px;
+  left: 10px;
 
-  overflow-y:auto;
+  right: 10px;
 
-  background:#f8fafc;
+  z-index: 1000;
 
-  border-radius:12px;
-
-  border:1px solid #e2e8f0;
+  padding-top: 8px;
 
 }
 
-.result{
+.brand {
 
-  display:block;
+  background: rgba(15,15,15,.92);
 
-  width:100%;
+  border-radius: 16px;
 
-  border:0;
+  padding: 10px 14px;
 
-  border-bottom:1px solid #e2e8f0;
-
-  background:white;
-
-  text-align:left;
-
-  padding:12px;
+  box-shadow: 0 3px 15px rgba(0,0,0,.35);
 
 }
 
-.result:last-child{
+.brand-title {
 
-  border-bottom:0;
+  font-size: 21px;
 
-}
-
-.result-title{
-
-  font-size:14px;
-
-  font-weight:700;
+  font-weight: 800;
 
 }
 
-.result-address{
+.brand-sub {
 
-  margin-top:3px;
+  font-size: 12px;
 
-  font-size:11px;
+  opacity: .65;
 
-  color:#64748b;
-
-}
-
-.message{
-
-  padding:13px;
-
-  text-align:center;
-
-  font-size:12px;
-
-  color:#64748b;
+  margin-top: 2px;
 
 }
 
-.chips{
+.search-area {
 
-  display:flex;
+  margin-top: 8px;
 
-  gap:7px;
+  background: rgba(15,15,15,.94);
 
-  overflow-x:auto;
+  border-radius: 16px;
 
-  padding:9px 0 2px;
+  padding: 9px;
 
-}
-
-.chip{
-
-  white-space:nowrap;
-
-  border:1px solid #d1d5db;
-
-  background:white;
-
-  border-radius:999px;
-
-  padding:8px 11px;
-
-  font-weight:650;
+  box-shadow: 0 3px 15px rgba(0,0,0,.35);
 
 }
 
-.chip.active{
+.search-row {
 
-  background:#111827;
+  display: flex;
 
-  color:white;
-
-  border-color:#111827;
+  gap: 7px;
 
 }
 
-.settings{
+#destinationInput {
 
-  display:grid;
+  flex: 1;
 
-  grid-template-columns:1fr 1fr;
+  min-width: 0;
 
-  gap:7px;
+  border: 0;
 
-  margin-top:9px;
+  border-radius: 11px;
 
-}
+  padding: 13px;
 
-.setting{
+  font-size: 16px;
 
-  background:#f8fafc;
+  outline: none;
 
-  border-radius:11px;
+  background: #292929;
 
-  padding:8px;
-
-  font-size:12px;
-
-  display:flex;
-
-  align-items:center;
-
-  gap:7px;
+  color: white;
 
 }
 
-.setting input{
+button {
 
-  accent-color:#111827;
+  border: 0;
 
-}
+  border-radius: 11px;
 
-.status{
+  padding: 11px 14px;
 
-  margin-top:8px;
+  font-weight: 700;
 
-  font-size:12px;
-
-  color:#475569;
-
-  display:flex;
-
-  justify-content:space-between;
-
-  gap:10px;
+  cursor: pointer;
 
 }
 
-.status b{
+#searchButton {
 
-  color:#111827;
+  background: #fff;
 
-}
-
-.bottom{
-
-  position:fixed;
-
-  z-index:1000;
-
-  left:12px;
-
-  right:12px;
-
-  bottom:12px;
-
-  background:white;
-
-  border-radius:18px;
-
-  box-shadow:0 5px 25px #0003;
-
-  padding:12px;
+  color: #111;
 
 }
 
-.route-line{
+#searchResults {
 
-  display:flex;
+  display: none;
 
-  justify-content:space-between;
+  margin-top: 8px;
 
-  align-items:center;
+  max-height: 230px;
 
-  gap:10px;
-
-}
-
-.route-title{
-
-  font-size:15px;
-
-  font-weight:800;
+  overflow-y: auto;
 
 }
 
-.route-meta{
+.search-result {
 
-  font-size:12px;
+  padding: 12px;
 
-  color:#64748b;
+  margin-top: 5px;
 
-  margin-top:3px;
+  border-radius: 10px;
 
-}
-
-.primary{
-
-  border:0;
-
-  border-radius:12px;
-
-  padding:12px 16px;
-
-  font-weight:700;
-
-  background:#111827;
-
-  color:white;
+  background: #242424;
 
 }
 
-.actions{
+.search-result:active {
 
-  display:flex;
-
-  gap:8px;
-
-  margin-top:9px;
+  background: #3b3b3b;
 
 }
 
-.actions button{
+.result-name {
 
-  flex:1;
+  font-weight: 700;
 
-  border:0;
-
-  border-radius:11px;
-
-  padding:10px;
-
-  font-weight:750;
+  font-size: 14px;
 
 }
 
-.report{
+.result-address {
 
-  background:#fee2e2;
+  font-size: 12px;
 
-  color:#991b1b;
+  opacity: .65;
 
-}
-
-.locate{
-
-  background:#e2e8f0;
+  margin-top: 3px;
 
 }
 
-.notice{
+.controls {
 
-  font-size:11px;
+  position: absolute;
 
-  color:#64748b;
+  right: 10px;
 
-  margin-top:8px;
+  top: 190px;
 
-  line-height:1.35;
+  z-index: 900;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
 
 }
 
-#toast{
+.control-button {
 
-  position:fixed;
+  width: 47px;
 
-  z-index:2000;
+  height: 47px;
 
-  left:50%;
+  padding: 0;
 
-  bottom:150px;
+  border-radius: 50%;
 
-  transform:translateX(-50%);
+  background: rgba(15,15,15,.92);
 
-  background:#111827;
+  color: white;
 
-  color:white;
+  box-shadow: 0 3px 12px rgba(0,0,0,.35);
 
-  padding:10px 14px;
+  font-size: 20px;
 
-  border-radius:999px;
+}
 
-  font-size:13px;
+.panel {
 
-  display:none;
+  position: absolute;
 
-  max-width:90%;
+  left: 10px;
 
-  text-align:center;
+  right: 10px;
+
+  bottom: 10px;
+
+  z-index: 1000;
+
+  max-height: 48vh;
+
+  overflow-y: auto;
+
+  background: rgba(15,15,15,.95);
+
+  border-radius: 20px;
+
+  padding: 13px;
+
+  box-shadow: 0 3px 20px rgba(0,0,0,.45);
+
+}
+
+.section-title {
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  opacity: .65;
+
+  text-transform: uppercase;
+
+  letter-spacing: .5px;
+
+  margin-bottom: 8px;
+
+}
+
+.vehicle-row {
+
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 6px;
+
+}
+
+.vehicle {
+
+  padding: 10px 4px;
+
+  font-size: 11px;
+
+  background: #292929;
+
+  color: white;
+
+  border-radius: 10px;
+
+  text-align: center;
+
+}
+
+.vehicle.active {
+
+  background: white;
+
+  color: #111;
+
+}
+
+.vehicle-icon {
+
+  font-size: 20px;
+
+  display: block;
+
+  margin-bottom: 3px;
+
+}
+
+.settings {
+
+  margin-top: 12px;
+
+}
+
+.setting {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 8px 0;
+
+  border-bottom: 1px solid rgba(255,255,255,.08);
+
+  font-size: 14px;
+
+}
+
+.setting:last-child {
+
+  border-bottom: 0;
+
+}
+
+.setting input {
+
+  width: 20px;
+
+  height: 20px;
+
+}
+
+.status {
+
+  margin-top: 10px;
+
+  padding: 9px;
+
+  border-radius: 10px;
+
+  background: #222;
+
+  font-size: 12px;
+
+}
+
+.navigation {
+
+  display: none;
+
+  margin-top: 12px;
+
+  background: #202020;
+
+  border-radius: 14px;
+
+  padding: 12px;
+
+}
+
+.nav-main {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+}
+
+.turn-arrow {
+
+  font-size: 42px;
+
+  width: 52px;
+
+  text-align: center;
+
+}
+
+.nav-instruction {
+
+  flex: 1;
+
+}
+
+.nav-distance {
+
+  font-size: 24px;
+
+  font-weight: 800;
+
+}
+
+.nav-text {
+
+  font-size: 13px;
+
+  opacity: .8;
+
+  margin-top: 2px;
+
+}
+
+.trip-info {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-top: 10px;
+
+  padding-top: 9px;
+
+  border-top: 1px solid rgba(255,255,255,.08);
+
+}
+
+.trip-value {
+
+  font-size: 13px;
+
+}
+
+.trip-label {
+
+  font-size: 10px;
+
+  opacity: .55;
+
+}
+
+.maneuvers {
+
+  margin-top: 10px;
+
+}
+
+.maneuver {
+
+  display: flex;
+
+  gap: 10px;
+
+  padding: 9px 0;
+
+  border-bottom: 1px solid rgba(255,255,255,.07);
+
+}
+
+.maneuver-arrow {
+
+  width: 32px;
+
+  font-size: 21px;
+
+  text-align: center;
+
+}
+
+.maneuver-distance {
+
+  font-size: 12px;
+
+  opacity: .55;
+
+  margin-top: 2px;
+
+}
+
+.action-row {
+
+  display: flex;
+
+  gap: 7px;
+
+  margin-top: 11px;
+
+}
+
+.action-row button {
+
+  flex: 1;
+
+}
+
+#navigateButton {
+
+  background: white;
+
+  color: #111;
+
+}
+
+#reportButton {
+
+  background: #292929;
+
+  color: white;
+
+}
+
+.toast {
+
+  position: absolute;
+
+  left: 50%;
+
+  bottom: 55%;
+
+  transform: translateX(-50%);
+
+  z-index: 2000;
+
+  background: rgba(0,0,0,.88);
+
+  padding: 11px 15px;
+
+  border-radius: 12px;
+
+  font-size: 13px;
+
+  display: none;
+
+  max-width: 85%;
+
+  text-align: center;
+
+}
+
+.gps-dot {
+
+  width: 18px;
+
+  height: 18px;
+
+  background: #1683ff;
+
+  border: 4px solid white;
+
+  border-radius: 50%;
+
+  box-shadow: 0 1px 7px rgba(0,0,0,.5);
+
+}
+
+.destination-dot {
+
+  width: 18px;
+
+  height: 18px;
+
+  background: #ff3b30;
+
+  border: 3px solid white;
+
+  border-radius: 50%;
+
+}
+
+.leaflet-control-attribution {
+
+  font-size: 8px;
+
+}
+
+@media (max-height: 700px) {
+
+  .panel {
+
+    max-height: 42vh;
+
+  }
+
+  .controls {
+
+    top: 175px;
+
+  }
 
 }
 
@@ -430,163 +644,301 @@ body{
 
 <body>
 
-<div id="map"></div>
+<div id="app">
 
-<div class="panel">
+  <div id="map"></div>
 
-  <div class="search">
+  <div class="topbar">
 
-    <input id="dest" type="search" placeholder="Where to?">
+    <div class="brand">
 
-    <button id="searchBtn">Go</button>
+      <div class="brand-title">SmallRoute</div>
 
-  </div>
-
-  <div id="results" class="results"></div>
-
-  <div class="chips">
-
-    <button class="chip active" data-vehicle="50">50cc</button>
-
-    <button class="chip" data-vehicle="150">150cc</button>
-
-    <button class="chip" data-vehicle="motorcycle">Motorcycle</button>
-
-    <button class="chip" data-vehicle="bicycle">Motorized bicycle</button>
-
-  </div>
-
-  <div class="settings">
-
-    <label class="setting">
-
-      <input id="avoidHighways" type="checkbox" checked>
-
-      Avoid highways
-
-    </label>
-
-    <label class="setting">
-
-      <input id="avoidTolls" type="checkbox" checked>
-
-      Avoid tolls
-
-    </label>
-
-    <label class="setting">
-
-      <input id="avoidRestricted" type="checkbox" checked>
-
-      Avoid restricted
-
-    </label>
-
-    <label class="setting">
-
-      <input id="lowSpeed" type="checkbox" checked>
-
-      Prefer lower-speed roads
-
-    </label>
-
-    <label class="setting">
-
-      <input id="avoidUnpaved" type="checkbox" checked>
-
-      Avoid unpaved
-
-    </label>
-
-    <label class="setting">
-
-      <input id="liveGps" type="checkbox" checked>
-
-      Live GPS
-
-    </label>
-
-  </div>
-
-  <div class="status">
-
-    <span>
-
-      Vehicle:
-
-      <b id="vehicleName">50cc Scooter</b>
-
-    </span>
-
-    <span id="gpsStatus">
-
-      GPS waiting…
-
-    </span>
-
-  </div>
-
-</div>
-
-<div class="bottom">
-
-  <div class="route-line">
-
-    <div>
-
-      <div id="routeTitle" class="route-title">
-
-        Choose a destination
-
-      </div>
-
-      <div id="routeMeta" class="route-meta">
-
-        SmallRoute v0.4
-
-      </div>
+      <div class="brand-sub">Navigation for small vehicles</div>
 
     </div>
 
-    <button id="navigateBtn" class="primary">
+    <div class="search-area">
 
-      Navigate
+      <div class="search-row">
 
-    </button>
+        <input
+
+          id="destinationInput"
+
+          type="search"
+
+          placeholder="Where do you want to go?"
+
+          autocomplete="off"
+
+        >
+
+        <button id="searchButton">Search</button>
+
+      </div>
+
+      <div id="searchResults"></div>
+
+    </div>
+
+  </div>
+
+  <div class="controls">
+
+    <button
+
+      class="control-button"
+
+      id="locateButton"
+
+      title="My location"
+
+    >📍</button>
+
+    <button
+
+      class="control-button"
+
+      id="zoomInButton"
+
+    >+</button>
+
+    <button
+
+      class="control-button"
+
+      id="zoomOutButton"
+
+    >−</button>
 
   </div>
 
-  <div class="actions">
+  <div class="panel">
 
-    <button id="reportBtn" class="report">
+    <div class="section-title">Vehicle</div>
 
-      ⚠ Report
+    <div class="vehicle-row">
 
-    </button>
+      <button
 
-    <button id="locateBtn" class="locate">
+        class="vehicle active"
 
-      ◎ My location
+        data-vehicle="50"
 
-    </button>
+      >
+
+        <span class="vehicle-icon">🛵</span>
+
+        50cc
+
+      </button>
+
+      <button
+
+        class="vehicle"
+
+        data-vehicle="150"
+
+      >
+
+        <span class="vehicle-icon">🛵</span>
+
+        150cc
+
+      </button>
+
+      <button
+
+        class="vehicle"
+
+        data-vehicle="motorcycle"
+
+      >
+
+        <span class="vehicle-icon">🏍️</span>
+
+        Motorcycle
+
+      </button>
+
+      <button
+
+        class="vehicle"
+
+        data-vehicle="bicycle"
+
+      >
+
+        <span class="vehicle-icon">🚲</span>
+
+        Motorized<br>Bicycle
+
+      </button>
+
+    </div>
+
+    <div class="settings">
+
+      <div class="section-title">Route preferences</div>
+
+      <label class="setting">
+
+        <span>Avoid highways / interstates</span>
+
+        <input id="avoidHighways" type="checkbox" checked>
+
+      </label>
+
+      <label class="setting">
+
+        <span>Avoid toll roads</span>
+
+        <input id="avoidTolls" type="checkbox" checked>
+
+      </label>
+
+      <label class="setting">
+
+        <span>Prefer lower-speed roads</span>
+
+        <input id="lowSpeed" type="checkbox" checked>
+
+      </label>
+
+      <label class="setting">
+
+        <span>Avoid unpaved roads</span>
+
+        <input id="avoidUnpaved" type="checkbox" checked>
+
+      </label>
+
+      <label class="setting">
+
+        <span>Live GPS tracking</span>
+
+        <input id="liveGps" type="checkbox" checked>
+
+      </label>
+
+    </div>
+
+    <div class="status" id="status">
+
+      GPS: waiting for location…
+
+    </div>
+
+    <div class="navigation" id="navigation">
+
+      <div class="nav-main">
+
+        <div class="turn-arrow" id="turnArrow">
+
+          ↑
+
+        </div>
+
+        <div class="nav-instruction">
+
+          <div
+
+            class="nav-distance"
+
+            id="nextDistance"
+
+          >
+
+            —
+
+          </div>
+
+          <div
+
+            class="nav-text"
+
+            id="nextInstruction"
+
+          >
+
+            Route ready
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="trip-info">
+
+        <div class="trip-value">
+
+          <div id="remainingDistance">—</div>
+
+          <div class="trip-label">REMAINING</div>
+
+        </div>
+
+        <div class="trip-value">
+
+          <div id="eta">—</div>
+
+          <div class="trip-label">ETA</div>
+
+        </div>
+
+        <div class="trip-value">
+
+          <div id="routeTime">—</div>
+
+          <div class="trip-label">TRIP TIME</div>
+
+        </div>
+
+      </div>
+
+      <div
+
+        class="maneuvers"
+
+        id="maneuvers"
+
+      ></div>
+
+    </div>
+
+    <div class="action-row">
+
+      <button id="navigateButton">
+
+        Start Navigation
+
+      </button>
+
+      <button id="reportButton">
+
+        ⚠️ Report
+
+      </button>
+
+    </div>
 
   </div>
 
-  <div class="notice">
-
-    Vehicle-aware navigation prototype. Road suitability is a routing aid, not a legal determination.
-
-  </div>
+  <div class="toast" id="toast"></div>
 
 </div>
-
-<div id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-const map = L.map("map").setView([25.94,-80.21],12);
+const map = L.map("map", {
+
+  zoomControl: false
+
+}).setView([25.9420, -80.2450], 13);
 
 L.tileLayer(
 
@@ -594,711 +946,653 @@ L.tileLayer(
 
   {
 
-    maxZoom:19,
+    maxZoom: 19,
 
-    attribution:"© OpenStreetMap contributors"
+    attribution: "&copy; OpenStreetMap contributors"
 
   }
 
 ).addTo(map);
 
-L.control.zoom({
+/* -------------------------
 
-  position:"bottomright"
+   STATE
 
-}).addTo(map);
+------------------------- */
 
-let userPosition = null;
+let currentPosition = null;
 
-let destination = null;
-
-let userMarker = null;
+let gpsMarker = null;
 
 let destinationMarker = null;
 
 let routeLine = null;
 
-let gpsWatch = null;
-
-const vehicles = {
-
-  "50":{
-
-    name:"50cc Scooter",
-
-    costing:"motor_scooter",
-
-    topSpeed:50
-
-  },
-
-  "150":{
-
-    name:"150cc Scooter",
-
-    costing:"motor_scooter",
-
-    topSpeed:85
-
-  },
-
-  "motorcycle":{
-
-    name:"Motorcycle",
-
-    costing:"motorcycle",
-
-    topSpeed:120
-
-  },
-
-  "bicycle":{
-
-    name:"Motorized bicycle",
-
-    costing:"bicycle",
-
-    topSpeed:35
-
-  }
-
-};
+let destination = null;
 
 let selectedVehicle =
 
   localStorage.getItem("smallrouteVehicle") || "50";
 
-function showToast(message){
+let routeData = null;
 
-  const toast =
+let maneuvers = [];
 
-    document.getElementById("toast");
+let navigationActive = false;
+
+let watchId = null;
+
+let lastRouteTime = 0;
+
+/* -------------------------
+
+   VEHICLES
+
+------------------------- */
+
+const vehicleProfiles = {
+
+  "50": {
+
+    costing: "auto",
+
+    topSpeed: 50,
+
+    name: "50cc Scooter"
+
+  },
+
+  "150": {
+
+    costing: "auto",
+
+    topSpeed: 85,
+
+    name: "150cc Scooter"
+
+  },
+
+  "motorcycle": {
+
+    costing: "auto",
+
+    topSpeed: 120,
+
+    name: "Motorcycle"
+
+  },
+
+  "bicycle": {
+
+    costing: "bicycle",
+
+    topSpeed: 35,
+
+    name: "Motorized Bicycle"
+
+  }
+
+};
+
+/* -------------------------
+
+   ELEMENTS
+
+------------------------- */
+
+const statusBox =
+
+  document.getElementById("status");
+
+const toast =
+
+  document.getElementById("toast");
+
+const searchResults =
+
+  document.getElementById("searchResults");
+
+const destinationInput =
+
+  document.getElementById("destinationInput");
+
+const navigation =
+
+  document.getElementById("navigation");
+
+/* -------------------------
+
+   HELPERS
+
+------------------------- */
+
+function showToast(message, duration = 2500) {
 
   toast.textContent = message;
 
   toast.style.display = "block";
 
-  clearTimeout(window.toastTimer);
+  setTimeout(() => {
 
-  window.toastTimer =
+    toast.style.display = "none";
 
-    setTimeout(function(){
-
-      toast.style.display = "none";
-
-    },2600);
+  }, duration);
 
 }
 
-function updateVehicleButtons(){
+function formatDistance(miles) {
 
-  document
+  if (!isFinite(miles)) {
 
-    .querySelectorAll(".chip")
+    return "—";
 
-    .forEach(function(button){
+  }
 
-      button.classList.toggle(
+  if (miles < 0.1) {
 
-        "active",
+    return Math.round(miles * 5280) + " ft";
 
-        button.dataset.vehicle === selectedVehicle
+  }
 
-      );
-
-    });
-
-  document.getElementById("vehicleName").textContent =
-
-    vehicles[selectedVehicle].name;
-
-  localStorage.setItem(
-
-    "smallrouteVehicle",
-
-    selectedVehicle
-
-  );
+  return miles.toFixed(1) + " mi";
 
 }
 
-document
+function formatMinutes(minutes) {
 
-  .querySelectorAll(".chip")
+  if (!isFinite(minutes)) {
 
-  .forEach(function(button){
+    return "—";
 
-    button.addEventListener("click",function(){
+  }
 
-      selectedVehicle =
+  minutes = Math.round(minutes);
 
-        button.dataset.vehicle;
+  if (minutes < 60) {
 
-      updateVehicleButtons();
+    return minutes + " min";
 
-      if(destination && userPosition){
+  }
 
-        calculateRoute();
+  const hours =
 
-      }
+    Math.floor(minutes / 60);
 
-    });
+  const mins =
+
+    minutes % 60;
+
+  return hours + "h " + mins + "m";
+
+}
+
+function formatETA(seconds) {
+
+  const now =
+
+    new Date(Date.now() + seconds * 1000);
+
+  return now.toLocaleTimeString([], {
+
+    hour: "numeric",
+
+    minute: "2-digit"
 
   });
 
-updateVehicleButtons();
-
-function getLocation(){
-
-  if(!navigator.geolocation){
-
-    showToast("GPS is not available.");
-
-    return;
-
-  }
-
-  navigator.geolocation.getCurrentPosition(
-
-    function(position){
-
-      userPosition = {
-
-        lat:position.coords.latitude,
-
-        lon:position.coords.longitude,
-
-        accuracy:position.coords.accuracy
-
-      };
-
-      updateUserMarker();
-
-      map.setView(
-
-        [
-
-          userPosition.lat,
-
-          userPosition.lon
-
-        ],
-
-        14
-
-      );
-
-      updateGpsText();
-
-      if(destination){
-
-        calculateRoute();
-
-      }
-
-    },
-
-    function(error){
-
-      showToast(
-
-        "GPS error: " + error.message
-
-      );
-
-    },
-
-    {
-
-      enableHighAccuracy:true,
-
-      maximumAge:10000,
-
-      timeout:15000
-
-    }
-
-  );
-
 }
 
-function updateUserMarker(){
+/* -------------------------
 
-  if(!userPosition){
+   VEHICLE SELECTION
 
-    return;
+------------------------- */
 
-  }
+document.querySelectorAll(".vehicle").forEach(button => {
 
-  const point = [
+  button.addEventListener("click", () => {
 
-    userPosition.lat,
+    document.querySelectorAll(".vehicle")
 
-    userPosition.lon
+      .forEach(v => v.classList.remove("active"));
 
-  ];
+    button.classList.add("active");
 
-  if(!userMarker){
+    selectedVehicle =
 
-    userMarker =
+      button.dataset.vehicle;
 
-      L.marker(point)
+    localStorage.setItem(
 
-        .addTo(map)
+      "smallrouteVehicle",
 
-        .bindPopup("You are here");
-
-  }else{
-
-    userMarker.setLatLng(point);
-
-  }
-
-}
-
-function updateGpsText(){
-
-  if(!userPosition){
-
-    return;
-
-  }
-
-  document.getElementById("gpsStatus").textContent =
-
-    "GPS ±" +
-
-    Math.round(userPosition.accuracy) +
-
-    "m";
-
-}
-
-function startGpsWatch(){
-
-  if(gpsWatch !== null){
-
-    navigator.geolocation.clearWatch(
-
-      gpsWatch
+      selectedVehicle
 
     );
-
-  }
-
-  if(
-
-    !document.getElementById("liveGps").checked
-
-  ){
-
-    return;
-
-  }
-
-  if(!navigator.geolocation){
-
-    return;
-
-  }
-
-  gpsWatch =
-
-    navigator.geolocation.watchPosition(
-
-      function(position){
-
-        userPosition = {
-
-          lat:position.coords.latitude,
-
-          lon:position.coords.longitude,
-
-          accuracy:position.coords.accuracy
-
-        };
-
-        updateUserMarker();
-
-        updateGpsText();
-
-      },
-
-      function(){},
-
-      {
-
-        enableHighAccuracy:true,
-
-        maximumAge:5000,
-
-        timeout:10000
-
-      }
-
-    );
-
-}
-
-document
-
-  .getElementById("liveGps")
-
-  .addEventListener(
-
-    "change",
-
-    startGpsWatch
-
-  );
-
-async function searchPlaces(query){
-
-  const url =
-
-    "https://nominatim.openstreetmap.org/search" +
-
-    "?format=jsonv2" +
-
-    "&limit=8" +
-
-    "&addressdetails=1" +
-
-    "&countrycodes=us" +
-
-    "&q=" +
-
-    encodeURIComponent(query);
-
-  const response =
-
-    await fetch(url);
-
-  if(!response.ok){
-
-    throw new Error(
-
-      "Search service unavailable."
-
-    );
-
-  }
-
-  return await response.json();
-
-}
-
-function displaySearchResults(results){
-
-  const container =
-
-    document.getElementById("results");
-
-  container.innerHTML = "";
-
-  if(!results.length){
-
-    container.innerHTML =
-
-      '<div class="message">No destinations found.</div>';
-
-    container.style.display = "block";
-
-    return;
-
-  }
-
-  results.forEach(function(result){
-
-    const button =
-
-      document.createElement("button");
-
-    button.className = "result";
-
-    const title =
-
-      document.createElement("div");
-
-    title.className = "result-title";
-
-    title.textContent =
-
-      result.name ||
-
-      result.display_name.split(",")[0];
-
-    const address =
-
-      document.createElement("div");
-
-    address.className = "result-address";
-
-    address.textContent =
-
-      result.display_name;
-
-    button.appendChild(title);
-
-    button.appendChild(address);
-
-    button.addEventListener(
-
-      "click",
-
-      function(){
-
-        chooseDestination(result);
-
-      }
-
-    );
-
-    container.appendChild(button);
-
-  });
-
-  container.style.display = "block";
-
-}
-
-async function search(){
-
-  const input =
-
-    document.getElementById("dest");
-
-  const query =
-
-    input.value.trim();
-
-  if(!query){
 
     showToast(
 
-      "Enter a destination first."
+      vehicleProfiles[selectedVehicle].name
 
     );
+
+    if (destination && currentPosition) {
+
+      calculateRoute();
+
+    }
+
+  });
+
+});
+
+document.querySelectorAll(".vehicle").forEach(button => {
+
+  if (
+
+    button.dataset.vehicle === selectedVehicle
+
+  ) {
+
+    button.classList.add("active");
+
+  } else {
+
+    button.classList.remove("active");
+
+  }
+
+});
+
+/* -------------------------
+
+   GPS
+
+------------------------- */
+
+function startGPS() {
+
+  if (!navigator.geolocation) {
+
+    statusBox.textContent =
+
+      "GPS unavailable on this device.";
 
     return;
 
   }
 
-  const results =
+  watchId =
 
-    document.getElementById("results");
+    navigator.geolocation.watchPosition(
 
-  results.style.display = "block";
+      position => {
 
-  results.innerHTML =
+        const lat =
 
-    '<div class="message">Searching…</div>';
+          position.coords.latitude;
 
-  try{
+        const lon =
 
-    const places =
+          position.coords.longitude;
 
-      await searchPlaces(query);
+        const accuracy =
 
-    displaySearchResults(places);
+          position.coords.accuracy;
 
-  }catch(error){
+        currentPosition = {
 
-    results.innerHTML =
+          lat,
 
-      '<div class="message">Search failed. Try again.</div>';
+          lon,
 
-    showToast(error.message);
+          accuracy
+
+        };
+
+        updateGPSMarker();
+
+        statusBox.textContent =
+
+          "GPS ±" +
+
+          Math.round(accuracy) +
+
+          "m";
+
+        if (
+
+          navigationActive &&
+
+          destination
+
+        ) {
+
+          updateNavigationProgress();
+
+        }
+
+      },
+
+      error => {
+
+        statusBox.textContent =
+
+          "GPS error: " + error.message;
+
+      },
+
+      {
+
+        enableHighAccuracy: true,
+
+        maximumAge: 2000,
+
+        timeout: 15000
+
+      }
+
+    );
+
+}
+
+function updateGPSMarker() {
+
+  if (!currentPosition) {
+
+    return;
+
+  }
+
+  const lat =
+
+    currentPosition.lat;
+
+  const lon =
+
+    currentPosition.lon;
+
+  const icon =
+
+    L.divIcon({
+
+      className: "",
+
+      html: '<div class="gps-dot"></div>',
+
+      iconSize: [18,18],
+
+      iconAnchor: [9,9]
+
+    });
+
+  if (!gpsMarker) {
+
+    gpsMarker =
+
+      L.marker([lat, lon], {
+
+        icon,
+
+        zIndexOffset: 1000
+
+      }).addTo(map);
+
+  } else {
+
+    gpsMarker.setLatLng([lat, lon]);
 
   }
 
 }
 
-document
+/* -------------------------
 
-  .getElementById("searchBtn")
+   SEARCH
 
-  .addEventListener(
+------------------------- */
 
-    "click",
+async function searchDestination() {
 
-    search
+  const query =
 
-  );
+    destinationInput.value.trim();
 
-document
+  if (!query) {
 
-  .getElementById("dest")
+    return;
 
-  .addEventListener(
+  }
 
-    "keydown",
+  searchResults.style.display =
 
-    function(event){
+    "block";
 
-      if(event.key === "Enter"){
+  searchResults.innerHTML =
 
-        search();
+    "<div class='search-result'>Searching…</div>";
 
-      }
+  try {
+
+    const url =
+
+      "https://nominatim.openstreetmap.org/search" +
+
+      "?format=jsonv2" +
+
+      "&limit=8" +
+
+      "&addressdetails=1" +
+
+      "&countrycodes=us" +
+
+      "&q=" +
+
+      encodeURIComponent(query);
+
+    const response =
+
+      await fetch(url, {
+
+        headers: {
+
+          "Accept": "application/json"
+
+        }
+
+      });
+
+    if (!response.ok) {
+
+      throw new Error("Search failed");
 
     }
 
-  );
+    const results =
 
-function chooseDestination(result){
+      await response.json();
+
+    if (!results.length) {
+
+      searchResults.innerHTML =
+
+        "<div class='search-result'>No results found.</div>";
+
+      return;
+
+    }
+
+    searchResults.innerHTML = "";
+
+    results.forEach(result => {
+
+      const item =
+
+        document.createElement("div");
+
+      item.className =
+
+        "search-result";
+
+      item.innerHTML = `
+
+        <div class="result-name">
+
+          ${escapeHtml(result.display_name.split(",")[0])}
+
+        </div>
+
+        <div class="result-address">
+
+          ${escapeHtml(result.display_name)}
+
+        </div>
+
+      `;
+
+      item.addEventListener("click", () => {
+
+        selectDestination(result);
+
+      });
+
+      searchResults.appendChild(item);
+
+    });
+
+  } catch (error) {
+
+    searchResults.innerHTML =
+
+      "<div class='search-result'>Search unavailable.</div>";
+
+  }
+
+}
+
+function escapeHtml(text) {
+
+  return String(text)
+
+    .replaceAll("&", "&amp;")
+
+    .replaceAll("<", "&lt;")
+
+    .replaceAll(">", "&gt;")
+
+    .replaceAll('"', "&quot;")
+
+    .replaceAll("'", "&#039;");
+
+}
+
+function selectDestination(result) {
 
   destination = {
 
-    lat:Number(result.lat),
+    lat: Number(result.lat),
 
-    lon:Number(result.lon),
+    lon: Number(result.lon),
 
-    name:result.display_name
+    name: result.display_name
 
   };
 
-  document.getElementById("dest").value =
-
-    result.name ||
-
-    result.display_name.split(",")[0];
-
-  document.getElementById("results").style.display =
+  searchResults.style.display =
 
     "none";
 
-  if(destinationMarker){
+  destinationInput.value =
 
-    map.removeLayer(
+    result.display_name.split(",")[0];
 
-      destinationMarker
+  setDestinationMarker();
+
+  map.setView(
+
+    [destination.lat, destination.lon],
+
+    14
+
+  );
+
+  if (currentPosition) {
+
+    calculateRoute();
+
+  } else {
+
+    showToast(
+
+      "Waiting for GPS location…"
 
     );
 
   }
 
-  destinationMarker =
-
-    L.marker(
-
-      [
-
-        destination.lat,
-
-        destination.lon
-
-      ]
-
-    )
-
-    .addTo(map)
-
-    .bindPopup(
-
-      destination.name
-
-    )
-
-    .openPopup();
-
-  document.getElementById("routeTitle").textContent =
-
-    "Calculating route…";
-
-  calculateRoute();
-
 }
 
-function decodePolyline(encoded){
+function setDestinationMarker() {
 
-  let index = 0;
+  if (!destination) {
 
-  let lat = 0;
+    return;
 
-  let lon = 0;
+  }
 
-  const points = [];
+  const icon =
 
-  while(index < encoded.length){
+    L.divIcon({
 
-    let result = 0;
+      className: "",
 
-    let shift = 0;
+      html: '<div class="destination-dot"></div>',
 
-    let byte;
+      iconSize: [18,18],
 
-    do{
+      iconAnchor: [9,9]
 
-      byte =
+    });
 
-        encoded.charCodeAt(index++) - 63;
+  if (!destinationMarker) {
 
-      result |=
+    destinationMarker =
 
-        (byte & 31) << shift;
+      L.marker(
 
-      shift += 5;
+        [destination.lat, destination.lon],
 
-    }while(byte >= 32);
+        { icon }
 
-    lat +=
+      ).addTo(map);
 
-      (result & 1)
+  } else {
 
-      ? ~(result >> 1)
+    destinationMarker.setLatLng([
 
-      : (result >> 1);
+      destination.lat,
 
-    result = 0;
-
-    shift = 0;
-
-    do{
-
-      byte =
-
-        encoded.charCodeAt(index++) - 63;
-
-      result |=
-
-        (byte & 31) << shift;
-
-      shift += 5;
-
-    }while(byte >= 32);
-
-    lon +=
-
-      (result & 1)
-
-      ? ~(result >> 1)
-
-      : (result >> 1);
-
-    points.push([
-
-      lat / 1000000,
-
-      lon / 1000000
+      destination.lon
 
     ]);
 
   }
 
-  return points;
-
 }
 
-async function calculateRoute(){
+/* -------------------------
 
-  if(!userPosition){
+   VALHALLA ROUTING
 
-    getLocation();
+------------------------- */
+
+async function calculateRoute() {
+
+  if (!currentPosition || !destination) {
 
     showToast(
 
-      "Getting your GPS location…"
+      "Need your GPS location and a destination."
 
     );
 
@@ -1306,143 +1600,223 @@ async function calculateRoute(){
 
   }
 
-  if(!destination){
+  const now =
+
+    Date.now();
+
+  if (now - lastRouteTime < 1000) {
 
     return;
 
   }
 
+  lastRouteTime = now;
+
+  statusBox.textContent =
+
+    "Calculating route…";
+
   const vehicle =
 
-    vehicles[selectedVehicle];
+    vehicleProfiles[selectedVehicle];
+
+  const useHighways =
+
+    !document.getElementById(
+
+      "avoidHighways"
+
+    ).checked;
+
+  const useTolls =
+
+    !document.getElementById(
+
+      "avoidTolls"
+
+    ).checked;
+
+  const preferLowSpeed =
+
+    document.getElementById(
+
+      "lowSpeed"
+
+    ).checked;
+
+  const avoidUnpaved =
+
+    document.getElementById(
+
+      "avoidUnpaved"
+
+    ).checked;
 
   const payload = {
 
-    locations:[
+    locations: [
 
       {
 
-        lat:userPosition.lat,
+        lat: currentPosition.lat,
 
-        lon:userPosition.lon
+        lon: currentPosition.lon,
+
+        type: "break"
 
       },
 
       {
 
-        lat:destination.lat,
+        lat: destination.lat,
 
-        lon:destination.lon
+        lon: destination.lon,
+
+        type: "break"
 
       }
 
     ],
 
-    costing:vehicle.costing,
+    costing:
 
-    units:"miles",
+      vehicle.costing,
 
-    costing_options:{}
+    directions_options: {
+
+      units: "miles",
+
+      language: "en-US"
+
+    },
+
+    units: "miles",
+
+    shape_format: "polyline6"
 
   };
 
-  if(vehicle.costing === "motor_scooter"){
+  /*
 
-    payload.costing_options.motor_scooter = {
+    For now the public Valhalla server uses
 
-      top_speed:vehicle.topSpeed,
+    the normal auto/bicycle costing models.
 
-      use_highways:
+    We use the vehicle profile to modify
 
-        document.getElementById("avoidHighways").checked
+    highway/road preferences where supported.
 
-        ? 0
+  */
 
-        : 1,
+  if (vehicle.costing === "auto") {
 
-      use_tolls:
+    payload.costing_options = {
 
-        document.getElementById("avoidTolls").checked
+      auto: {
 
-        ? 0
+        use_highways:
 
-        : 1,
+          useHighways ? 1 : 0,
 
-      use_primary:
+        use_tolls:
 
-        document.getElementById("lowSpeed").checked
+          useTolls ? 1 : 0,
 
-        ? 0.35
+        top_speed:
 
-        : 1
+          vehicle.topSpeed,
 
-    };
+        use_primary:
 
-  }
+          preferLowSpeed ? 0.5 : 1.0,
 
-  if(vehicle.costing === "motorcycle"){
+        use_tracks:
 
-    payload.costing_options.motorcycle = {
+          avoidUnpaved ? 0 : 1
 
-      use_highways:
-
-        document.getElementById("avoidHighways").checked
-
-        ? 0
-
-        : 1,
-
-      use_tolls:
-
-        document.getElementById("avoidTolls").checked
-
-        ? 0
-
-        : 1
+      }
 
     };
 
   }
 
-  if(vehicle.costing === "bicycle"){
+  if (vehicle.costing === "bicycle") {
 
-    payload.costing_options.bicycle = {
+    payload.costing_options = {
 
-      bicycle_type:"road",
+      bicycle: {
 
-      use_roads:0.75
+        bicycle_type: "road",
+
+        use_roads:
+
+          preferLowSpeed ? 0.3 : 0.7
+
+      }
 
     };
 
   }
 
-  document.getElementById("routeTitle").textContent =
+  try {
 
-    "Calculating route…";
+    /*
 
-  try{
+      Valhalla public HTTP API.
 
-    const url =
+      The demo website and HTTP API are
 
-      "https://valhalla.openstreetmap.de/route?json=" +
+      different hosts.
 
-      encodeURIComponent(
+    */
 
-        JSON.stringify(payload)
+    const endpoint =
 
-      );
+      "https://valhalla1.openstreetmap.de/route";
+
+    /*
+
+      POST avoids creating an excessively long
+
+      URL when the request gets more complicated.
+
+    */
 
     const response =
 
-      await fetch(url);
+      await fetch(endpoint, {
 
-    if(!response.ok){
+        method: "POST",
+
+        headers: {
+
+          "Content-Type": "application/json",
+
+          "X-Client-Id": "smallroute-prototype"
+
+        },
+
+        body:
+
+          JSON.stringify(payload)
+
+      });
+
+    if (!response.ok) {
+
+      const text =
+
+        await response.text();
 
       throw new Error(
 
-        "Routing service returned " +
+        "Routing HTTP " +
 
-        response.status
+        response.status +
+
+        ": " +
+
+        text
 
       );
 
@@ -1452,7 +1826,7 @@ async function calculateRoute(){
 
       await response.json();
 
-    if(
+    if (
 
       !data.trip ||
 
@@ -1460,145 +1834,63 @@ async function calculateRoute(){
 
       !data.trip.legs.length
 
-    ){
+    ) {
 
       throw new Error(
 
-        "No route found."
+        "No route returned."
 
       );
 
     }
 
-    const points =
+    routeData =
 
-      decodePolyline(
+      data.trip;
 
-        data.trip.legs[0].shape
+    drawRoute();
 
-      );
+    setupManeuvers();
 
-    if(routeLine){
+    statusBox.textContent =
 
-      map.removeLayer(
+      "Route ready • " +
 
-        routeLine
+      formatDistance(
 
-      );
-
-    }
-
-    routeLine =
-
-      L.polyline(
-
-        points,
-
-        {
-
-          weight:6,
-
-          opacity:0.9
-
-        }
-
-      ).addTo(map);
-
-    map.fitBounds(
-
-      routeLine.getBounds(),
-
-      {
-
-        padding:[
-
-          40,
-
-          250
-
-        ]
-
-      }
-
-    );
-
-    const summary =
-
-      data.trip.summary || {};
-
-    const miles =
-
-      Number(
-
-        summary.length || 0
-
-      ).toFixed(1);
-
-    const minutes =
-
-      Math.round(
-
-        Number(
-
-          summary.time || 0
-
-        ) / 60
+        data.trip.summary.length
 
       );
 
-    document.getElementById("routeTitle").textContent =
+    navigation.style.display =
 
-      miles +
-
-      " mi • " +
-
-      minutes +
-
-      " min";
-
-    document.getElementById("routeMeta").textContent =
-
-      vehicle.name +
-
-      " • highways " +
-
-      (
-
-        document.getElementById("avoidHighways").checked
-
-        ? "avoided"
-
-        : "allowed"
-
-      ) +
-
-      " • tolls " +
-
-      (
-
-        document.getElementById("avoidTolls").checked
-
-        ? "avoided"
-
-        : "allowed"
-
-      );
-
-  }catch(error){
-
-    console.error(error);
-
-    document.getElementById("routeTitle").textContent =
-
-      "Route unavailable";
-
-    document.getElementById("routeMeta").textContent =
-
-      error.message;
+      "block";
 
     showToast(
 
-      "Routing service unavailable."
+      "Route calculated"
+
+    );
+
+  } catch (error) {
+
+    console.error(
+
+      "SmallRoute routing error:",
+
+      error
+
+    );
+
+    statusBox.textContent =
+
+      "Routing service unavailable.";
+
+    showToast(
+
+      "Could not calculate route. Try again.",
+
+      3500
 
     );
 
@@ -1606,31 +1898,749 @@ async function calculateRoute(){
 
 }
 
+/* -------------------------
+
+   POLYLINE DECODER
+
+------------------------- */
+
+function decodePolyline6(str) {
+
+  let index = 0;
+
+  let lat = 0;
+
+  let lon = 0;
+
+  const coordinates = [];
+
+  while (index < str.length) {
+
+    let result = 0;
+
+    let shift = 0;
+
+    let byte;
+
+    do {
+
+      byte =
+
+        str.charCodeAt(index++) - 63;
+
+      result |=
+
+        (byte & 0x1f) << shift;
+
+      shift += 5;
+
+    } while (byte >= 0x20);
+
+    const deltaLat =
+
+      (result & 1)
+
+        ? ~(result >> 1)
+
+        : (result >> 1);
+
+    lat += deltaLat;
+
+    result = 0;
+
+    shift = 0;
+
+    do {
+
+      byte =
+
+        str.charCodeAt(index++) - 63;
+
+      result |=
+
+        (byte & 0x1f) << shift;
+
+      shift += 5;
+
+    } while (byte >= 0x20);
+
+    const deltaLon =
+
+      (result & 1)
+
+        ? ~(result >> 1)
+
+        : (result >> 1);
+
+    lon += deltaLon;
+
+    coordinates.push([
+
+      lat / 1000000,
+
+      lon / 1000000
+
+    ]);
+
+  }
+
+  return coordinates;
+
+}
+
+/* -------------------------
+
+   DRAW ROUTE
+
+------------------------- */
+
+function drawRoute() {
+
+  if (!routeData) {
+
+    return;
+
+  }
+
+  if (routeLine) {
+
+    map.removeLayer(routeLine);
+
+  }
+
+  const points = [];
+
+  routeData.legs.forEach(leg => {
+
+    if (leg.shape) {
+
+      const decoded =
+
+        decodePolyline6(
+
+          leg.shape
+
+        );
+
+      decoded.forEach(point => {
+
+        points.push(point);
+
+      });
+
+    }
+
+  });
+
+  if (!points.length) {
+
+    showToast(
+
+      "Route received but no map shape was returned."
+
+    );
+
+    return;
+
+  }
+
+  routeLine =
+
+    L.polyline(
+
+      points,
+
+      {
+
+        weight: 6,
+
+        opacity: 0.85
+
+      }
+
+    ).addTo(map);
+
+  const bounds =
+
+    routeLine.getBounds();
+
+  map.fitBounds(
+
+    bounds,
+
+    {
+
+      padding: [80, 220]
+
+    }
+
+  );
+
+}
+
+/* -------------------------
+
+   MANEUVERS
+
+------------------------- */
+
+function setupManeuvers() {
+
+  maneuvers = [];
+
+  routeData.legs.forEach(leg => {
+
+    if (leg.maneuvers) {
+
+      leg.maneuvers.forEach(
+
+        maneuver => {
+
+          maneuvers.push(
+
+            maneuver
+
+          );
+
+        }
+
+      );
+
+    }
+
+  });
+
+  renderManeuvers();
+
+}
+
+function maneuverArrow(maneuver) {
+
+  const type =
+
+    Number(maneuver.type);
+
+  /*
+
+    Valhalla maneuver types are numeric.
+
+    These are intentionally approximate
+
+    visual indicators for the prototype.
+
+  */
+
+  if (
+
+    [1, 2, 3, 4, 5, 6].includes(type)
+
+  ) {
+
+    return "↰";
+
+  }
+
+  if (
+
+    [7, 8, 9, 10].includes(type)
+
+  ) {
+
+    return "↱";
+
+  }
+
+  if (
+
+    [11, 12].includes(type)
+
+  ) {
+
+    return "↑";
+
+  }
+
+  if (
+
+    [13, 14, 15].includes(type)
+
+  ) {
+
+    return "↻";
+
+  }
+
+  return "↑";
+
+}
+
+function getInstruction(maneuver) {
+
+  return (
+
+    maneuver.instruction ||
+
+    maneuver.verbal_pre_transition_instruction ||
+
+    maneuver.verbal_succinct_transition_instruction ||
+
+    "Continue"
+
+  );
+
+}
+
+function maneuverDistance(maneuver) {
+
+  if (
+
+    maneuver.length !== undefined
+
+  ) {
+
+    return formatDistance(
+
+      Number(maneuver.length)
+
+    );
+
+  }
+
+  return "";
+
+}
+
+function renderManeuvers() {
+
+  const container =
+
+    document.getElementById(
+
+      "maneuvers"
+
+    );
+
+  container.innerHTML = "";
+
+  if (!maneuvers.length) {
+
+    container.innerHTML =
+
+      "<div class='maneuver'>No turn instructions returned.</div>";
+
+    return;
+
+  }
+
+  maneuvers.forEach(
+
+    (maneuver, index) => {
+
+      const row =
+
+        document.createElement("div");
+
+      row.className =
+
+        "maneuver";
+
+      row.innerHTML = `
+
+        <div class="maneuver-arrow">
+
+          ${maneuverArrow(maneuver)}
+
+        </div>
+
+        <div>
+
+          <div>
+
+            ${escapeHtml(
+
+              getInstruction(maneuver)
+
+            )}
+
+          </div>
+
+          <div class="maneuver-distance">
+
+            ${maneuverDistance(maneuver)}
+
+          </div>
+
+        </div>
+
+      `;
+
+      container.appendChild(row);
+
+    }
+
+  );
+
+  updateNextManeuver();
+
+}
+
+/* -------------------------
+
+   NAVIGATION
+
+------------------------- */
+
+function startNavigation() {
+
+  if (!routeData) {
+
+    showToast(
+
+      "Search for a destination first."
+
+    );
+
+    return;
+
+  }
+
+  navigationActive =
+
+    true;
+
+  navigation.style.display =
+
+    "block";
+
+  document.getElementById(
+
+    "navigateButton"
+
+  ).textContent =
+
+    "Navigation Active";
+
+  updateNavigationProgress();
+
+  showToast(
+
+    "Navigation started"
+
+  );
+
+}
+
+function updateNavigationProgress() {
+
+  if (
+
+    !navigationActive ||
+
+    !currentPosition ||
+
+    !maneuvers.length
+
+  ) {
+
+    return;
+
+  }
+
+  updateNextManeuver();
+
+}
+
+function updateNextManeuver() {
+
+  if (!maneuvers.length) {
+
+    return;
+
+  }
+
+  /*
+
+    Prototype behavior:
+
+    Use the first maneuver that has not
+
+    been passed based on the route's
+
+    begin/end shape indexes when available.
+
+  */
+
+  let currentIndex = 0;
+
+  if (
+
+    currentPosition &&
+
+    routeLine
+
+  ) {
+
+    let nearest =
+
+      routeLine.closestLayerPoint
+
+      ? null
+
+      : null;
+
+    /*
+
+      For v0.5 we keep maneuver selection
+
+      simple and stable.
+
+      Later we will match GPS position
+
+      against the route geometry and
+
+      automatically advance maneuvers.
+
+    */
+
+  }
+
+  const maneuver =
+
+    maneuvers[currentIndex];
+
+  const instruction =
+
+    getInstruction(maneuver);
+
+  document.getElementById(
+
+    "nextInstruction"
+
+  ).textContent =
+
+    instruction;
+
+  document.getElementById(
+
+    "turnArrow"
+
+  ).textContent =
+
+    maneuverArrow(maneuver);
+
+  document.getElementById(
+
+    "nextDistance"
+
+  ).textContent =
+
+    maneuverDistance(maneuver);
+
+  if (routeData.summary) {
+
+    document.getElementById(
+
+      "remainingDistance"
+
+    ).textContent =
+
+      formatDistance(
+
+        routeData.summary.length
+
+      );
+
+    document.getElementById(
+
+      "routeTime"
+
+    ).textContent =
+
+      formatMinutes(
+
+        routeData.summary.time / 60
+
+      );
+
+    document.getElementById(
+
+      "eta"
+
+    ).textContent =
+
+      formatETA(
+
+        routeData.summary.time
+
+      );
+
+  }
+
+}
+
+/* -------------------------
+
+   BUTTONS
+
+------------------------- */
+
+document.getElementById(
+
+  "searchButton"
+
+).addEventListener(
+
+  "click",
+
+  searchDestination
+
+);
+
+destinationInput.addEventListener(
+
+  "keydown",
+
+  event => {
+
+    if (event.key === "Enter") {
+
+      searchDestination();
+
+    }
+
+  }
+
+);
+
+document.getElementById(
+
+  "locateButton"
+
+).addEventListener(
+
+  "click",
+
+  () => {
+
+    if (!currentPosition) {
+
+      showToast(
+
+        "Waiting for GPS…"
+
+      );
+
+      return;
+
+    }
+
+    map.setView(
+
+      [
+
+        currentPosition.lat,
+
+        currentPosition.lon
+
+      ],
+
+      16
+
+    );
+
+  }
+
+);
+
+document.getElementById(
+
+  "zoomInButton"
+
+).addEventListener(
+
+  "click",
+
+  () => map.zoomIn()
+
+);
+
+document.getElementById(
+
+  "zoomOutButton"
+
+).addEventListener(
+
+  "click",
+
+  () => map.zoomOut()
+
+);
+
+document.getElementById(
+
+  "navigateButton"
+
+).addEventListener(
+
+  "click",
+
+  startNavigation
+
+);
+
+document.getElementById(
+
+  "reportButton"
+
+).addEventListener(
+
+  "click",
+
+  () => {
+
+    showToast(
+
+      "Reporting system coming next."
+
+    );
+
+  }
+
+);
+
+/* -------------------------
+
+   ROUTE SETTING CHANGES
+
+------------------------- */
+
 [
 
   "avoidHighways",
 
   "avoidTolls",
 
-  "avoidRestricted",
-
   "lowSpeed",
 
   "avoidUnpaved"
 
-].forEach(function(id){
+].forEach(id => {
 
-  document
-
-    .getElementById(id)
+  document.getElementById(id)
 
     .addEventListener(
 
       "change",
 
-      function(){
+      () => {
 
-        if(destination){
+        if (
+
+          destination &&
+
+          currentPosition
+
+        ) {
 
           calculateRoute();
 
@@ -1642,89 +2652,21 @@ async function calculateRoute(){
 
 });
 
-document
+/* -------------------------
 
-  .getElementById("locateBtn")
+   START
 
-  .addEventListener(
+------------------------- */
 
-    "click",
+startGPS();
 
-    getLocation
+showToast(
 
-  );
+  "SmallRoute v0.5 ready",
 
-document
-
-  .getElementById("navigateBtn")
-
-  .addEventListener(
-
-    "click",
-
-    function(){
-
-      if(!destination){
-
-        showToast(
-
-          "Choose a destination first."
-
-        );
-
-        return;
-
-      }
-
-      startGpsWatch();
-
-      showToast(
-
-        "Navigation mode started."
-
-      );
-
-    }
-
-  );
-
-document
-
-  .getElementById("reportBtn")
-
-  .addEventListener(
-
-    "click",
-
-    function(){
-
-      showToast(
-
-        "Reports will be added in the next module."
-
-      );
-
-    }
-
-  );
-
-map.on(
-
-  "click",
-
-  function(){
-
-    document.getElementById("results").style.display =
-
-      "none";
-
-  }
+  1800
 
 );
-
-getLocation();
-
-startGpsWatch();
 
 </script>
 
